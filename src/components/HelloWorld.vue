@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
+    <b-button variant="outline-primary" @click="logOut">登出</b-button>
     <p>
       For a guide and recipes on how to configure / customize this project,<br>
       check out the
@@ -35,6 +36,18 @@ export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  methods: {
+    logOut () {
+      const api = `${process.env.VUE_APP_API}/logout`;
+      console.log('⛑️: created -> api', api);
+      this.$http.post(api).then((response) => {
+        console.log(response.data)
+        if (response.data.success) {
+          this.$router.push('/login');
+        }
+      })
+    }
   }
 }
 </script>

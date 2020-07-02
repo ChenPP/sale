@@ -1,0 +1,56 @@
+<template>
+  <div>
+    <!-- <div id="nav">
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link> |
+      <router-link to="/login">Login</router-link>
+    </div> -->
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+      <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Company name</a>
+      <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+      <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+          <a class="nav-link" href="#" @click="logOut">{{loginStatus? '登出' : '未登入'}}</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</template>
+
+<script>
+export default {
+  data () {
+    return {
+      loginStatus: false,
+    }
+  },
+  created() {
+    const api = `${process.env.VUE_APP_API}/api/user/check`;
+    this.$http.post(api).then((response) => {
+    console.log('⛑️: 登入狀態', response.data);
+      console.log(response.data)
+      if (response.data.success) {
+        this.loginStatus = true;
+      } else {
+        this.loginStatus = false;
+      }
+    })
+  },
+  methods: {
+    logOut () {
+      const api = `${process.env.VUE_APP_API}/logout`;
+      console.log('⛑️: 登出 -> api', api);
+      this.$http.post(api).then((response) => {
+        console.log(response.data)
+        if (response.data.success) {
+          this.$router.push('/login');
+        }
+      })
+    }
+  }
+}
+</script>
+
