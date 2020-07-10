@@ -1,10 +1,13 @@
 <template>
   <div>
     <div>
-      <b-button variant="outline-primary" @click="openModal" class="mt-4">建立新產品</b-button>
+      <b-button variant="outline-primary" @click="openModal(true)" class="mt-4">建立新產品</b-button>
     </div>
     <!-- TODO: table用 -->
-    <table class="table mt-4">
+    <div class="d-flex justify-content-center">
+      <b-spinner type="grow" class="m-5" variant="info" v-show="tableLoading"></b-spinner>
+    </div>
+    <table class="table mt-4" v-show="!tableLoading">
       <thead>
         <tr>
           <th width="120">分類</th>
@@ -12,7 +15,7 @@
           <th width="120">原價</th>
           <th width="120">售價</th>
           <th width="100">是否啟用</th>
-          <th width="80">其他</th>
+          <th width="150">其他</th>
         </tr>
       </thead>
       <tbody>
@@ -26,22 +29,42 @@
             <span v-else class="text-danger">未啟用</span>
           </td>
           <td>
-            <b-button variant="outline-primary" size="sm">編輯</b-button>
+            <b-button variant="outline-primary" size="sm" class="mr-2"
+              @click="openModal(false, item)">
+              編輯
+            </b-button>
+            <b-button variant="outline-danger" size="sm" @click="deleteModal(item)">刪除</b-button>
           </td>
         </tr>
       </tbody>
     </table>
-    <b-modal id="new-modal" title="新增產品 " @ok="check" @cancel="cancel">
+    <b-modal id="new-modal" :title="modalTitle"
+      @ok="check" @cancel="cancel" @hide="hide">
       <div>
         <b-form ref="form" @submit.stop.prevent="check">
           <b-form-group
             v-for="(item, index) in newConfig" :key="index"
             :label="item.label"
           >
-            <b-form-file
-              v-if="item.type === 'file'"
-              v-model="item.value" class="mt-3" plain>
-            </b-form-file>
+            <!-- 上傳圖片 -->
+              <!-- @change="uploaded" -->
+            <div v-if="item.type === 'file'" >
+              <b-form-file
+                @input="uploaded"
+                v-model="uploadData"
+                placeholder="Choose a file or drop it here..."
+                class="mt-3">
+              </b-form-file>
+              <div class="col-sm-4 mt-2">
+                <b-spinner v-show="uploadLoading" small variant="primary"></b-spinner>
+                <b-img
+                  v-if="!uploadLoading && uploadImgUrl"
+                  :src="uploadImgUrl"
+                  fluid
+                  alt="Responsive image"
+                ></b-img>
+              </div>
+            </div>
             <b-form-input
               v-else-if="(item.type === 'text' && item.label !== '產品描述' && item.label !== '說明內容')
                 || item.type === 'url'"
@@ -65,19 +88,21 @@
             <b-form-checkbox
               v-else-if="item.type === 'checkbox'"
               v-model="item.value"
-            >
-              啟用
+            >啟用
             </b-form-checkbox>
           </b-form-group>
         </b-form>
       </div>
+    </b-modal>
+    <b-modal id="delete-modal" title="刪除資料" @ok="deleteBtn" @hide="deleHide">
+      <p class="my-4">確定刪除此筆資料？</p>
     </b-modal>
   </div>
 </template>
 
 <script>
 export default {
-  data ()  {
+  data()  {
     return {
       list: [],
       formData: {
@@ -86,7 +111,7 @@ export default {
         title: '',
         category: '',
         unit: '個',
-        originPrice: 0,
+        origin_price: 0,
         price: 0,
         description: '',
         content: '',
@@ -131,7 +156,7 @@ export default {
         {
           label: '原價',
           type: 'number',
-          key: 'originPrice',
+          key: 'origin_price',
           value: 0,
           placeholder: '請輸入原價',
         },
@@ -161,26 +186,65 @@ export default {
           value: true,
         },
       ],
+      isNew: false,
+      deleData: null,
+      modalTitle: '新增',
+      uploadData: null,
+      uploadImgUrl: null,
+      uploadLoading: false,
+      tableLoading: false,
     };
   },
-  created () {
+  created() {
     this.getList();
   },
   methods: {
-    getList () {
+    getList() {
+      this.tableLoading = true;
       const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/products`;
-      console.log('⛑️: created -> api', api);
       this.$http.get(api).then((response) => {
         if (response.data.success) {
           this.list = response.data.products;
-          console.log('⛑️: list', this.list);
+          console.log('⛑️: getList -> this.list', this.list);
         }
+        this.tableLoading = false;
       })
     },
-    openModal () {
+    openModal(checkNew, item) {
+      console.log('⛑️: openModal -> item', item);
+      this.isNew = checkNew
+      if(checkNew === false) {
+        this.modalTitle = '修改';
+        this.formData = item
+        this.uploadImgUrl = item.imageUrl;
+        this.newConfig.map((data) => {
+          Object.keys(this.formData).map((key) => {
+            if(key === data.key) {
+              if(key === 'is_enabled') {
+                item[key] = item[key] === 1 ? true : false;
+              }
+              data.value = item[key];
+            }
+          })
+        })
+      } else {
+        this.modalTitle = '新增';
+      }
       this.$bvModal.show('new-modal');
     },
-    check () { 
+    check() {
+      let api;
+      let httpMethod;
+      console.log('chek', this.formData);
+      if(this.isNew) {
+        api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/product`;
+        httpMethod = 'post';
+        console.log('新增')
+      } else {
+        api =
+          `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/product/${this.formData.id}`;
+        httpMethod = 'put';
+      }
       Object.keys(this.formData).map((key) => {
         this.newConfig.forEach((item) => {
           if (item.key === key) {
@@ -192,19 +256,150 @@ export default {
         })
       })
       const data = { data: this.formData };
-      const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/product`;
-      console.log('⛑️: created -> api', data);
-      this.$http.post(api, data).then((response) => {
+      console.log('⛑️: 新建產品 ->api ', data);
+      this.$http[httpMethod](api, data).then((response) => {
         if (response.data.success) {
           this.list = response.data.products;
           console.log('⛑️: ', response);
+          this.getList();
+        } else {
+          console.log('新建失敗')
         }
       })
     },
-    cancel () {
-      console.log('Cancel');
-    }
-    
+    deleteModal(item) {
+      this.deleData = Object.assign({}, item);
+      this.$bvModal.show('delete-modal');
+    },
+    deleteBtn() {
+      const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/product/${this.deleData.id}`;
+      this.$http.delete(api).then((response) => {
+        if (response.data.success) {
+          console.log("刪除");
+          this.getList();
+        } else {
+          console.log("刪除失敗");
+        }
+      })
+    },
+    deleHide() {
+      this.deleData = null;
+    },
+    cancel() {
+      console.log('cancel');
+    },
+    hide() {
+      this.resetform();
+      console.log('Hide~~');
+    },
+    resetform() {
+      this.newConfig = [
+        {
+          label: '輸入網址',
+          type: 'url',
+          key: 'imageUrl',
+          value: '',
+          placeholder: '輸入圖片網址',
+        },
+        {
+          label: '上傳圖片',
+          type: 'file',
+          key: 'image',
+          value: null,
+          placeholder: '選擇圖片',
+        },
+        {
+          label: '標題',
+          type: 'text',
+          key: 'title',
+          value: '',
+          placeholder: '請輸入標題',
+        },
+        {
+          label: '分類',
+          type: 'text',
+          key: 'category',
+          value: '',
+          placeholder: '請輸入分類',
+        },
+        {
+          label: '單位',
+          type: 'text',
+          key: 'unit',
+          value: '個',
+          placeholder: '請輸入單位',
+        },
+        {
+          label: '原價',
+          type: 'number',
+          key: 'origin_price',
+          value: 0,
+          placeholder: '請輸入原價',
+        },
+        {
+          label: '售價',
+          type: 'number',
+          key: 'price',
+          value: 0,
+          placeholder: '請輸入售價',
+        },
+        {
+          label: '產品描述',
+          key: 'description',
+          value: '',
+          placeholder: '請輸入產品描述',
+        },
+        {
+          label: '說明內容',
+          key: 'content',
+          value: '',
+          placeholder: '請輸入產品說明內容',
+        },
+        {
+          label: '是否啟用',
+          type: 'checkbox',
+          key: 'is_enabled',
+          value: true,
+        },
+      ];
+      this.formData = {
+        imageUrl: '',
+        image: null,
+        title: '',
+        category: '',
+        unit: '個',
+        origin_price: 0,
+        price: 0,
+        description: '',
+        content: '',
+        is_enabled: 1,
+      };
+      this.uploadImgUrl = '';
+    },
+    uploaded() {
+      this.uploadLoading = true;
+      console.log('Data', this.uploadData)
+      const formData = new FormData();
+      formData.append('file-to-upload', this.uploadData);
+      const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/upload`
+      this.$http.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(res =>  {
+        if(res.data.success) {
+          // uploadImgUrl
+          this.newConfig.map((item) => {
+            if(item.key === 'imageUrl') {
+              item.value = res.data.imageUrl;
+              this.uploadImgUrl = res.data.imageUrl;
+            }
+            return item;
+          })
+          this.uploadLoading = false;
+        }
+      })
+    },
   },
 }
 </script>
