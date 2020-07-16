@@ -7,8 +7,10 @@
     <div class="d-flex justify-content-center">
       <b-spinner type="grow" class="m-5" variant="info" v-show="tableLoading"></b-spinner>
     </div>
-    <table class="table mt-4" v-show="!tableLoading">
-      <thead>
+    <table
+      class="table mt-4"
+      v-show="!tableLoading">
+      <b-thead>
         <tr>
           <th width="120">分類</th>
           <th>產品名稱</th>
@@ -17,8 +19,8 @@
           <th width="100">是否啟用</th>
           <th width="150">其他</th>
         </tr>
-      </thead>
-      <tbody>
+      </b-thead>
+      <b-tbody>
         <tr v-for="(item) in list" :key="item.id">
           <td>{{item.category}}</td>
           <td>{{item.title}}</td>
@@ -36,10 +38,18 @@
             <b-button variant="outline-danger" size="sm" @click="deleteModal(item)">刪除</b-button>
           </td>
         </tr>
-      </tbody>
+      </b-tbody>
     </table>
+    <b-pagination
+      v-show="!tableLoading"
+      align="center"
+      v-model="pagination.current_page"
+      :total-rows="rows"
+      per-page="10"
+      @change="changePage"
+    ></b-pagination>
     <b-modal id="new-modal" :title="modalTitle"
-      @ok="check" @cancel="cancel" @hide="hide">
+      @ok="check" @hide="hide">
       <div>
         <b-form ref="form" @submit.stop.prevent="check">
           <b-form-group
@@ -193,19 +203,29 @@ export default {
       uploadImgUrl: null,
       uploadLoading: false,
       tableLoading: false,
+      pagination: {},
+      currentPage: 1,
     };
   },
   created() {
     this.getList();
   },
+  computed: {
+    rows() {
+      console.log(this.pagination.total_pages * 10)
+      return this.pagination.total_pages * 10;
+    },
+  },
   methods: {
-    getList() {
+    getList(page = 1) {
       this.tableLoading = true;
-      const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/products`;
+      const api =
+        `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/products?page=${page}`;
       this.$http.get(api).then((response) => {
         if (response.data.success) {
           this.list = response.data.products;
-          console.log('⛑️: getList -> this.list', this.list);
+          this.pagination = response.data.pagination;
+          console.log('⛑️: getList -> this.list', this.pagination);
         }
         this.tableLoading = false;
       })
@@ -285,9 +305,6 @@ export default {
     },
     deleHide() {
       this.deleData = null;
-    },
-    cancel() {
-      console.log('cancel');
     },
     hide() {
       this.resetform();
@@ -406,6 +423,9 @@ export default {
         }
       })
     },
+    changePage(page) {
+      this.getList(page);
+    }
   },
 }
 </script>

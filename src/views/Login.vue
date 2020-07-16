@@ -39,7 +39,6 @@ export default {
         data: this.user,
         withCredentials: true,
       }).then((res) => {
-        console.log('⛑️: }).then -> res', res);
         if (res.data.success) {
           this.$router.push('/dashboard/product');
         }
