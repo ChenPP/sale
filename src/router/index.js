@@ -11,12 +11,6 @@ const routes = [
     redirect: '/login',
   },
   {
-    path: '/',
-    name: 'Home',
-    component: Home,
-    meta: { needLogin: true },
-  },
-  {
     path: '/about',
     name: 'About',
     component: () => import('@/views/About.vue')

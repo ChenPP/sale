@@ -266,6 +266,7 @@ export default {
           console.log('新建失敗')
         }
       })
+      this.tableLoading = true;
     },
     deleteModal(item) {
       this.deleData = Object.assign({}, item);
@@ -388,7 +389,6 @@ export default {
         }
       }).then(res =>  {
         if(res.data.success) {
-          // uploadImgUrl
           this.newConfig.map((item) => {
             if(item.key === 'imageUrl') {
               item.value = res.data.imageUrl;
@@ -397,6 +397,12 @@ export default {
             return item;
           })
           this.uploadLoading = false;
+        } else {
+          this.$bus.$emit('alert-message', {
+            messages: res.data.message,
+            dismissSecs: 3,
+            type: 'danger',
+          });
         }
       })
     },

@@ -33,12 +33,17 @@ export default {
     signin () {
       const api = `${process.env.VUE_APP_API}/admin/signin`;
       const data = this.user;
-      this.$http.post(api, data).then((response) => {
-        console.log(response.data)
-        if (response.data.success) {
+      this.axios({
+        method: 'post',
+        url: api,
+        data: this.user,
+        withCredentials: true,
+      }).then((res) => {
+        console.log('⛑️: }).then -> res', res);
+        if (res.data.success) {
           this.$router.push('/dashboard/product');
         }
-      })
+      });
     },
   }
 }

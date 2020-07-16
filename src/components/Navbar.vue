@@ -1,10 +1,5 @@
 <template>
   <div>
-    <!-- <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/login">Login</router-link>
-    </div> -->
     <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
       <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="#">Company name</a>
       <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +25,6 @@ export default {
   created() {
     const api = `${process.env.VUE_APP_API}/api/user/check`;
     this.$http.post(api).then((response) => {
-    console.log('⛑️: 登入狀態', response.data);
       console.log(response.data)
       if (response.data.success) {
         this.loginStatus = true;
