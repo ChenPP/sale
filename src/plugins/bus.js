@@ -2,6 +2,7 @@ import Vue from 'vue'
 
 Vue.prototype.$bus = new Vue();
 
+
 // this.$bus.$emit('alert-message', {
 //   messages: 提示訊息
 //   dismissSecs: 顯示時間(預設5秒),

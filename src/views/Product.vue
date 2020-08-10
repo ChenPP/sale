@@ -246,6 +246,11 @@ export default {
               data.value = item[key];
             }
           })
+          if(data.key === 'imageUrl' && item.image) {
+            console.log('進來囉')
+            data.value = item.image;
+            this.uploadImgUrl = item.image;
+          }
         })
       } else {
         this.modalTitle = '新增';
@@ -265,19 +270,15 @@ export default {
           `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/product/${this.formData.id}`;
         httpMethod = 'put';
       }
-      Object.keys(this.formData).map((key) => {
-        this.newConfig.forEach((item) => {
-          if (item.key === key) {
-            if (item.key === 'is_enabled') {
-              item.value = item.value ? 1 : 0;
-            }
-            this.formData[key] = item.value;
-          }
-        })
-      })
-      const data = { data: this.formData };
+      const data = this.newConfig.reduce((preItem, item) => {
+        if(item.key === 'is_enabled') {
+          item.value = item.value ? 1 : 0;
+        }
+        return { ...preItem, [item.key]: item.value }
+      }, {});
+      
       console.log('⛑️: 新建產品 ->api ', data);
-      this.$http[httpMethod](api, data).then((response) => {
+      this.$http[httpMethod](api, {data}).then((response) => {
         if (response.data.success) {
           this.list = response.data.products;
           console.log('⛑️: ', response);
@@ -406,14 +407,15 @@ export default {
         }
       }).then(res =>  {
         if(res.data.success) {
-          this.newConfig.map((item) => {
-            if(item.key === 'imageUrl') {
+          this.newConfig = this.newConfig.map((item) => {
+            if(item.key === 'imageUrl' || item.key === 'image') {
               item.value = res.data.imageUrl;
-              this.uploadImgUrl = res.data.imageUrl;
             }
+            this.uploadImgUrl = res.data.imageUrl;
             return item;
           })
           this.uploadLoading = false;
+          console.log('⛑️: uploaded -> 上傳完畢 newConfig', this.newConfig);
         } else {
           this.$bus.$emit('alert-message', {
             messages: res.data.message,

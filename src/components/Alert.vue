@@ -27,9 +27,14 @@ export default {
       this.updateMessage(alert);
     });
   },
+  // beforeDestroy() {
+  //   // [銷毀監聽事件]
+  //   console.log('⛑️: 銷毀 Alert 監聽事件');
+  //   // 如果要指定哪個監聽對應方法，就需要傳入第二個參數(對應$on設定的方法)
+  //   this.$bus.$off('alert-message');
+  // },
   methods: {
     updateMessage(alert) {
-      console.log('⛑️: updateMessage -> alert', alert);
       this.alertData = { ...this.alertData, ...alert};
       this.dismissCountDown = this.alertData.dismissSecs;
     },

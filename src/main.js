@@ -6,7 +6,8 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import './assets/all.scss'
-import './views/bus'
+import './plugins/bus'
+import './plugins/moment'
 import currencyFilter from './filters/currency'
 
 Vue.use(BootstrapVue)

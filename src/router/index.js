@@ -31,6 +31,24 @@ const routes = [
         component: () => import('@/views/Product.vue'),
         meta: { needLogin: true },
       },
+      {
+        path: 'coupon',
+        name: 'Coupon',
+        component: () => import('@/views/Coupon.vue'),
+        meta: { needLogin: true },
+      },
+    ],
+  },
+  {
+    path: '/dashboard',
+    name: 'CustomerOrders',
+    component: () => import('@/views/Dashboard.vue'),
+    children: [
+      {
+        path: 'customer_order',
+        name: 'CustomerOrders',
+        component: () => import('@/views/CustomerOrders.vue'),
+      },
     ],
   },
 ]
