@@ -5,18 +5,7 @@
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>
-        <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto">
-          <!-- <b-nav-form>
-            <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
-            <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
-          </b-nav-form> -->
-          <!-- <b-nav-item-dropdown text="Lang" right>
-            <b-dropdown-item href="#">EN</b-dropdown-item>
-            <b-dropdown-item href="#">ES</b-dropdown-item>
-            <b-dropdown-item href="#">RU</b-dropdown-item>
-            <b-dropdown-item href="#">FA</b-dropdown-item>
-          </b-nav-item-dropdown> -->
           <b-navbar-nav>
             <b-nav-item href="#" class="center" @click.prevent="logOut">{{loginStatus? '登出' : '未登入'}}</b-nav-item>
             <b-nav-item>
@@ -60,7 +49,8 @@
       </div>
       <template v-slot:footer="{ hide }">
         <div v-show="footerLoading">
-          <b-spinner type="grow" class="m-5" variant="info"></b-spinner>
+          <b-spinner type="grow" class="m-5 align-middle" variant="info"/>
+          <strong>Loading...</strong>
         </div>
         <div v-show="!footerLoading">
           <div >
@@ -81,15 +71,17 @@
               </b-dropdown-item>
             </b-dropdown>
           </div>
-          <div class="d-flex align-items-center px-3 py-2">
+          <div v-if="couponSelected" class="d-flex align-items-center px-3 py-2">
             <strong class="mr-auto">折扣價格
               <span class="text-danger">{{checkout.final_total | currency}}</span>
             </strong>
           </div>
-          <div class="d-flex align-items-center px-3 py-2">
+          <div v-else class="d-flex align-items-center px-3 py-2">
             <strong class="mr-auto">全部金額
               <span class="text-danger">{{checkout.total | currency}}</span>
             </strong>
+          </div>
+          <div class="d-flex justify-content-end align-items-center px-3 py-2">
             <b-button variant="danger" size="sm" @click="checkoutMethod(hide)">結帳</b-button>
           </div>
         </div>
@@ -100,6 +92,7 @@
 
 <script>
 import moment from 'moment';
+import { resolve } from 'url';
 
 export default {
   data () {
@@ -131,33 +124,33 @@ export default {
       selectedCoupon: '請選擇優惠卷',
       couponList: [],
       footerLoading: false,
+      couponSelected: false, //是否有套用優惠卷
     }
   },
   created() {
     const api = `${process.env.VUE_APP_API}/api/user/check`;
     this.$http.post(api).then((response) => {
-      console.log(response.data)
+      console.log('登入狀態', response.data)
       if (response.data.success) {
         this.loginStatus = true;
       } else {
         this.loginStatus = false;
       }
     })
-    // this.openCart();
   },
   methods: {
-    openCart() {
-      console.log('⛑️: openCart -> openCart');
+    async openCart() {
+      await this.resetData();
       Promise.all([this.getCart(), this.getCouponList()]).then(
         res => {
-          console.log('結束', res);
+          console.log('openCart', res);
         })
     },
     resetData() {
-      this.cartData = [];
       this.checkout = {};
       this.selectedCoupon = '請選擇優惠卷';
       this.couponList = [];
+      this.couponSelected = false;
     },
     logOut () {
       const api = `${process.env.VUE_APP_API}/logout`;
@@ -171,11 +164,9 @@ export default {
     },
     getCart() {
       this.tableLoading = true;
-      console.log('⛑️: 1111111 -> getCart');
       return new Promise(resolve => {
         const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/cart`;
         this.$http.get(url).then((res) => {
-          // console.log('⛑️: getCart -> res', res);
           if(res.data.success) {
             const data =   res.data.data.carts;
             this.checkout = res.data.data;
@@ -183,7 +174,7 @@ export default {
               return [...pre, {...item.product, ...item}];
             }, []);
             this.tableLoading = false;
-            resolve('11111getCouponList');
+            resolve('getCouponList');
           }
         });
       }) 
@@ -208,31 +199,27 @@ export default {
       })
     },
     getCouponList() {
-      console.log('⛑️: 222222 -> getCouponList');
       return new Promise(resolve => {
         const momentToday = Date.parse(moment().format("YYYY-MM-DD")) / 1000
-        console.log('⛑️: getCouponList -> momentToday', momentToday);
         const url =
           `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/coupons`;
         this.$http.get(url).then((res) => {
           if (res.data.success) {
             let data = res.data.coupons;
             const newData = data.reduce((pre, item) => {
-              console.log('⛑️: getCouponList -> item.due_date', item.due_date);
               if(item.due_date >= momentToday) {
-                console.log('優惠卷還可以用!!!');
                 return [...pre, {...item}];
               } else return pre;
             }, []);
-            console.log('⛑️: getCouponList -> newData', newData);
             this.couponList = newData;
-            resolve('22222getCouponList');
+            resolve('getCouponList');
           }
         });
       })
     },
     couponClick(item) {
       this.footerLoading = true;
+      console.log('⛑️: couponClick -> this.checkout', this.checkout);
       const data = { code: item.code };
       this.selectedCoupon = `${item.title} ${item.percent}％`;
       const url =
@@ -240,6 +227,7 @@ export default {
       this.$http.post(url, {data}).then((res) => {
         console.log('⛑️: couponClick -> res', res);
         if (res.data.success) {
+          this.couponSelected = true;
           this.checkout.final_total = res.data.data.final_total;
         } else {
           this.$bus.$emit('alert-message', {

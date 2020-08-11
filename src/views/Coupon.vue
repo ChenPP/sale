@@ -70,9 +70,10 @@
         :fields="fields">
         <template v-slot:cell(show_details)="row">
           <b-button variant="link" size="sm" @click="showDetail(row)">
-            {{ row.detailsShowing ? 'Hide' : 'Show'}} Details
+            {{ row.detailsShowing ? '隱藏' : '查看'}}．編輯
           </b-button>
         </template>
+        <!-- 詳細資料 -->
         <template v-slot:row-details="row" v-show="row.detailsShowing">
           <b-card>
             <b-form>
@@ -108,15 +109,14 @@
                 <b-col sm="3">
                   <b-input-group class="mb-3">
                     <b-form-input
-                      id="example-input"
-                      v-model="row.item.due_date"
+                      v-model="row.item.showDate"
                       type="text"
                       placeholder="YYYY-MM-DD"
                       autocomplete="off"
                     ></b-form-input>
                     <b-input-group-append>
                       <b-form-datepicker
-                        v-model="row.item.due_date"
+                        v-model="row.item.showDate"
                         button-only
                         right
                         aria-controls="example-input"
@@ -131,8 +131,8 @@
                 <b-col>
                   <b-form-checkbox
                     v-model.number="row.item.is_enabled"
-                    value=1
-                    unchecked-value=0
+                    value="1"
+                    unchecked-value="0"
                     switch>
                     啟用
                   </b-form-checkbox>
@@ -154,6 +154,10 @@
         <template v-slot:cell(is_enabled)="row">
           <b-icon v-if="row.item.is_enabled === 1" icon="check-circle" variant="success"/>
           <b-icon v-else icon="x-circle" variant="danger"/>
+        </template>
+        <template v-slot:cell(showDate)="row">
+          <span :class="[row.item.due_date < momentToday ? 'text-danger' : 'text-success']"
+          >{{row.item.showDate}}</span>
         </template>
       </b-table>
     </div>
@@ -186,7 +190,7 @@ export default {
           sortable: true,
         },
         {
-          key: 'due_date',
+          key: 'showDate',
           label: '到期日期',
           sortable: true,
         },
@@ -200,7 +204,7 @@ export default {
         }
       ],
       items: [],
-      
+      momentToday: Date.parse(moment().format("YYYY-MM-DD")) / 1000
     }
   },
   created() {
@@ -216,7 +220,7 @@ export default {
           let data = res.data.coupons;
           data.map((item) => {
             item._showDetails = false;
-            item.due_date = moment.unix(item.due_date).format("YYYY-MM-DD");;
+            item.showDate = moment.unix(item.due_date).format("YYYY-MM-DD");;
           })
           this.items = data;
           console.log('⛑️: getCouponList -> this.items', this.items);
@@ -224,18 +228,10 @@ export default {
       });
     },
     onSubmit() {
-      const momentToday = Date.parse(moment().format("YYYY-MM-DD"))
-      // 選擇日期小於今天
-      if (Date.parse(this.newCoupon.due_date) < Date.parse(momentToday)) {
-        this.$bus.$emit('alert-message', {
-          messages: '到期日期不能小於今日',
-          dismissSecs: 3,
-          type: 'danger',
-        });
-        return
-      }
       let data = {...this.newCoupon}
-      data.due_date = Date.parse(this.newCoupon.due_date)/1000;
+      data.due_date = Date.parse(this.newCoupon.due_date) / 1000;
+      
+      if (this.checkDate(data.due_date)) return;
 
       const url =
         `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/coupon`;
@@ -250,6 +246,20 @@ export default {
           this.resetData();
         }
       });
+    },
+    // 確認選擇日期是否小於今天
+    checkDate(date) {
+      console.log('⛑️: checkDate -> date', date);
+      if (date < this.momentToday) {
+        this.$bus.$emit('alert-message', {
+          messages: '到期日期不能小於今日',
+          dismissSecs: 3,
+          type: 'danger',
+        });
+        return true;
+      } else {
+        return false;
+      }
     },
     checkState(data) {
       if (data === null) {
@@ -270,16 +280,13 @@ export default {
       };
     },
     showDetail(row) {
-      console.log('⛑️: showDetail -> row', row);
       row.toggleDetails();
     },
     deleteItem(rowData) {
-      console.log('⛑️: deleteItem -> rowData', rowData);
       let data = Object.assign({}, rowData);
       const url =
         `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/coupon/${data.id}`;
       this.$http.delete(url).then((res) => {
-        console.log('⛑️: editItem -> res.data', res);
         if (res.data.success) {
           this.$bus.$emit('alert-message', {
           messages: '已刪除優惠卷',
@@ -292,7 +299,8 @@ export default {
     },
     editItem(rowData) {
       let data = Object.assign({}, rowData);
-      data.due_date = Date.parse(data.due_date)/1000;
+      data.due_date = Date.parse(data.showDate) / 1000;
+      if (this.checkDate(data.due_date)) return;
       const url =
         `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/admin/coupon/${data.id}`;
       this.$http.put(url, {data}).then((res) => {
