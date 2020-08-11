@@ -25,7 +25,7 @@
     </b-navbar>
 
     TODO: 增加Vuex後要移動到sidebar
-    <b-sidebar id="sidebar-right" title="購物車" shadow @hidden="cartHide">
+    <b-sidebar id="sidebar-right" title="購物車" shadow backdrop @hidden="cartHide">
       <div class="px-3 py-2">
         <b-table
           striped
