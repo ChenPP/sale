@@ -71,30 +71,38 @@
               </b-dropdown-item>
             </b-dropdown>
           </div>
-          <div v-if="couponSelected" class="d-flex align-items-center px-3 py-2">
-            <strong class="mr-auto">折扣價格
-              <span class="text-danger">{{checkout.final_total | currency}}</span>
-            </strong>
-          </div>
-          <div v-else class="d-flex align-items-center px-3 py-2">
+          <div class="d-flex align-items-center px-3 py-2">
             <strong class="mr-auto">全部金額
               <span class="text-danger">{{checkout.total | currency}}</span>
             </strong>
           </div>
+          <div v-if="couponSelected" class="d-flex align-items-center px-3 py-2">
+            <strong class="mr-auto text-success">折扣價格
+              <span class="text-danger">{{checkout.final_total | currency}}</span>
+            </strong>
+          </div>
           <div class="d-flex justify-content-end align-items-center px-3 py-2">
-            <b-button variant="danger" size="sm" @click="checkoutMethod(hide)">結帳</b-button>
+            <b-button
+              variant="danger" size="sm"
+              @click="checkoutMethod(hide)"
+              >結帳</b-button>
           </div>
         </div>
       </template>
     </b-sidebar>
+    <OrderUserModal></OrderUserModal>
   </div>
 </template>
 
 <script>
 import moment from 'moment';
 import { resolve } from 'url';
+import OrderUserModal from '@/components/OrderUserModal.vue';
 
 export default {
+  components: {
+    OrderUserModal,
+  },
   data () {
     return {
       tableLoading: true,
@@ -140,7 +148,6 @@ export default {
   },
   methods: {
     async openCart() {
-      await this.resetData();
       Promise.all([this.getCart(), this.getCouponList()]).then(
         res => {
           console.log('openCart', res);
@@ -180,11 +187,18 @@ export default {
       }) 
     },
     checkoutMethod (colse) {
+      this.$bvModal.show('userModal');
+      // const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/order`;
+      // this.$http.post(api, { data }).then((res) => {
+      //   if (res.data.success) {
+      //     this.getCart();
+      //   }
+      // })
       console.log('先結帳');
-      colse();
+      // colse();
     },
     cartHide() {
-      console.log("隱藏");
+      this.resetData();
       this.tableLoading = true;
     },
     deleteItem(data) {
@@ -207,7 +221,8 @@ export default {
           if (res.data.success) {
             let data = res.data.coupons;
             const newData = data.reduce((pre, item) => {
-              if(item.due_date >= momentToday) {
+              if(item.due_date > momentToday) {
+                console.log('⛑️: -> item.due_date', item.due_date, item.title);
                 return [...pre, {...item}];
               } else return pre;
             }, []);
@@ -218,8 +233,8 @@ export default {
       })
     },
     couponClick(item) {
+      console.log('⛑️: couponClick -> item', item);
       this.footerLoading = true;
-      console.log('⛑️: couponClick -> this.checkout', this.checkout);
       const data = { code: item.code };
       this.selectedCoupon = `${item.title} ${item.percent}％`;
       const url =
@@ -238,6 +253,12 @@ export default {
         }
         this.footerLoading = false;
       });
+    },
+    resetModal() {
+      console.log('Modal resetModal!');
+    },
+    okModal() {
+      console.log('OKOK BTN');
     }
   }
 }

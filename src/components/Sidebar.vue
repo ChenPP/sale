@@ -19,8 +19,16 @@
         <ul class="nav flex-column mb-2">
           <li class="nav-item">
             <router-link class="nav-link" to="/dashboard/coupon">
-              <b-icon icon="box-seam" class="mr-1"></b-icon>
+              <b-icon icon="gift" class="mr-1"></b-icon>
               <span class="align-self-center">優惠卷</span>
+            </router-link>
+          </li>
+        </ul>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <router-link class="nav-link" to="/dashboard/orderList">
+              <b-icon icon="card-checklist" class="mr-1"></b-icon>
+              <span class="align-self-center">訂單列表</span>
             </router-link>
           </li>
         </ul>
