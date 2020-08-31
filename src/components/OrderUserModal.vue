@@ -3,7 +3,7 @@
     <b-modal
       id="userModal"
       ref="modal"
-      title="購買人資訊"
+      title="填寫購買人資訊"
       @show="resetModal"
       @hidden="resetModal"
       @ok="handleOk"
