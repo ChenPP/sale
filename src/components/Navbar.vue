@@ -53,7 +53,7 @@
           <strong>Loading...</strong>
         </div>
         <div v-show="!footerLoading">
-          <div >
+          <div v-show="couponList.length">
             <b-dropdown
                 :text="selectedCoupon"
                 block
@@ -151,6 +151,7 @@ export default {
       Promise.all([this.getCart(), this.getCouponList()]).then(
         res => {
           console.log('openCart', res);
+          console.log(this.couponList)
         })
     },
     resetData() {
@@ -181,7 +182,7 @@ export default {
               return [...pre, {...item.product, ...item}];
             }, []);
             this.tableLoading = false;
-            resolve('getCouponList');
+            resolve('getCart');
           }
         });
       }) 
