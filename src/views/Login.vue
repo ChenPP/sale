@@ -40,6 +40,11 @@ export default {
         withCredentials: true,
       }).then((res) => {
         if (res.data.success) {
+          const token = res.data.token;
+          const expired = res.data.expired;
+          // 儲存cookie及有效期限
+          document.cookie = `hexToken=${token};expires=${new Date(expired)};`;
+          
           this.$router.push('/dashboard/product');
         }
       });
