@@ -24,14 +24,14 @@
             </router-link>
           </li>
         </ul>
-        <ul class="nav flex-column mb-2">
+        <!-- <ul class="nav flex-column mb-2">
           <li class="nav-item">
             <router-link class="nav-link" to="/dashboard/orderList">
               <b-icon icon="card-checklist" class="mr-1"></b-icon>
               <span class="align-self-center">訂單列表</span>
             </router-link>
           </li>
-        </ul>
+        </ul> -->
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
           <span>模擬功能</span>
         </h6>
@@ -39,7 +39,7 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/dashboard/customer_order">
               <b-icon icon="bag-check" class="mr-1"></b-icon>
-              <span class="align-self-center">訂單功能</span>
+              <span class="align-self-center">商場功能</span>
             </router-link>
           </li>
         </ul>

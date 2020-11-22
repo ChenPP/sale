@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-navbar toggleable="md" type="dark" variant="dark" fixed="top">
-      <b-navbar-brand href="#" class="bg-transparent shadow-none p-0">NavBar</b-navbar-brand>
+      <b-navbar-brand href="#" class="bg-transparent shadow-none p-0">GOGO</b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>
@@ -52,7 +52,7 @@
           <b-spinner type="grow" class="m-5 align-middle" variant="info"/>
           <strong>Loading...</strong>
         </div>
-        <div v-show="!footerLoading">
+        <div v-show="!footerLoading && !tableLoading">
           <div v-show="couponList.length">
             <b-dropdown
                 :text="selectedCoupon"
@@ -222,10 +222,10 @@ export default {
           if (res.data.success) {
             let data = res.data.coupons;
             const newData = data.reduce((pre, item) => {
-              if(item.due_date > momentToday) {
+              if(item.due_date > momentToday && item.is_enabled) {
                 console.log('⛑️: -> item.due_date', item.due_date, item.title);
                 return [...pre, {...item}];
-              } else return pre;
+              }  else return pre;
             }, []);
             this.couponList = newData;
             resolve('getCouponList');

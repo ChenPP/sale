@@ -67,8 +67,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.needLogin) {
     const api = `${process.env.VUE_APP_API}/api/user/check`;
     axios.post(api).then((response) => {
-    console.log('⛑️: 登入狀態', response);
-      console.log(response.data)
+    console.log('⛑️: 登入狀態', response.data.success);
       if (response.data.success) {
         next();
       } else {

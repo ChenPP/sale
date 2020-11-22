@@ -25,7 +25,7 @@
               <b-form-invalid-feedback>{{ validationContext.errors[0] }}</b-form-invalid-feedback>
             </b-form-group>
           </validation-provider>
-          <b-button type="submit" variant="primary">Submit</b-button>
+          <b-button type="submit" variant="primary">送出</b-button>
         </b-form>
       </validation-observer>
     </b-modal>
@@ -38,21 +38,21 @@ import {
   extend,
   localize
 } from "vee-validate";
-import { required, email, between } from 'vee-validate/dist/rules';
+import { required, email, numeric } from 'vee-validate/dist/rules';
 
 extend('email', {
   ...email,
   message: 'email不對啊？'
 })
 
-extend('between', {
-  ...required,
-  message: '號碼啊你'
+extend('numeric', {
+  ...numeric,
+  message: '號碼是數字ㄟ?'
 })
 
 extend('required', {
   ...required,
-  message: '填啊你！'
+  message: '必填喔~'
 });
 export default {
   components: {
@@ -79,7 +79,7 @@ export default {
         {
           key: 'tel',
           label: '手機',
-          rule: { required: true, between: [1, 10] },
+          rule: { required: true, numeric: true },
           value: '',
           state: null,
         },
@@ -147,7 +147,7 @@ export default {
         {
           key: 'tel',
           label: '手機',
-          rule: { required: true, between: [1, 10] },
+          rule: { required: true, numeric: true },
           value: '',
           state: null,
         },

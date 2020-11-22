@@ -41,7 +41,7 @@
       </b-tbody>
     </table>
     <b-pagination
-      v-show="!tableLoading"
+      v-show="!tableLoading && list.length"
       align="center"
       v-model="pagination.current_page"
       :total-rows="rows"
@@ -277,11 +277,10 @@ export default {
         return { ...preItem, [item.key]: item.value }
       }, {});
       
-      console.log('⛑️: 新建產品 ->api ', data);
       this.$http[httpMethod](api, {data}).then((response) => {
         if (response.data.success) {
           this.list = response.data.products;
-          console.log('⛑️: ', response);
+          console.log('⛑️: 新建 ', response.data.success);
           this.getList();
         } else {
           console.log('新建失敗')
