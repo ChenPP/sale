@@ -204,7 +204,7 @@ export default {
     },
     deleteItem(data) {
       this.tableLoading = true;
-      console.log('⛑️: deleteItem -> data', data);
+      console.log('⛑️: deleteItem');
       const id = data.item.id;
       const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/cart/${id}`;
       this.$http.delete(api).then((res) => {
@@ -234,7 +234,6 @@ export default {
       })
     },
     couponClick(item) {
-      console.log('⛑️: couponClick -> item', item);
       this.footerLoading = true;
       const data = { code: item.code };
       this.selectedCoupon = `${item.title} ${item.percent}％`;

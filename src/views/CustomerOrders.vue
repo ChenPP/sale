@@ -92,14 +92,21 @@ export default {
   },
   methods: {
     getProducts() {
-      const vm = this;
+      this.isLoading = true;
+      let productsList
       const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/products`;
-      vm.isLoading = true;
       this.$http.get(url).then((res) => {
-        vm.products = res.data.products;
-        vm.isLoading = false;
+        // 顯示啟用的產品
+        const ShowProductsList = res.data.products.reduce((preItem, item) => {
+          if(item.is_enabled) {
+            return [ ...preItem, {...item} ];
+          } else return preItem;
+        }, []);
+        this.products = ShowProductsList;
+        this.isLoading = false;
       });
     },
+
     openDetailModal(id) {
       this.modalLoading = id;
       const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/product/${id}`;
