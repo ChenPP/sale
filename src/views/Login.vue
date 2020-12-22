@@ -30,6 +30,7 @@ export default {
     }
   },
   methods: {
+    // $ha%7gzr
     signin () {
       const api = `${process.env.VUE_APP_API}/admin/signin`;
       const data = this.user;

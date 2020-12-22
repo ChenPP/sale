@@ -98,32 +98,12 @@ export default {
           state: null,
         },
       ],
-      submittedNames: [],
-      foods: [
-        { value: null, text: "Choose..." },
-        { value: "apple", text: "Apple" },
-        { value: "orange", text: "Orange" }
-      ],
-      form: {
-        name: null,
-        food: null
-      },
     }
   },
   methods: {
     getValidationState({ dirty, validated, valid = null }) {
       // console.log("getValidationState -> validated", validated, valid)
       return dirty || validated ? valid : null;
-    },
-    resetForm() {
-      this.form = {
-        name: null,
-        food: null
-      };
-
-      this.$nextTick(() => {
-        this.$refs.observer.reset();
-      });
     },
     methodsRules(ruleName) {
       console.log("methodsRules -> ruleName", ruleName);
@@ -167,6 +147,17 @@ export default {
         },
       ];
     },
+    // 送出表單
+    onSubmit() {
+      const form = this.items.reduce((pre, item) => {
+        // if(item.key !== 'message') ({...pre, [item.key]: item.value});
+        if (item.key !== 'message') {
+          return {...pre, [item.key]: item.value};
+        }
+        return pre;
+      }, {});
+      console.log('🚀 ~ file: OrderUserModal.vue ~ line 154 ~ onSubmit ~ form', form);
+    },
     checkFormValidity() {
       console.log('⛑️: checkFormValidity');
       // this.nameState = valid
@@ -176,9 +167,6 @@ export default {
       bvModalEvt.preventDefault()
       // Trigger submit handler
       this.handleSubmit()
-    },
-    onSubmit() {
-      alert("Form submitted!");
     },
     handleSubmit() {
       // Exit when the form isn't valid
