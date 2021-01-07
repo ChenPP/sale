@@ -229,7 +229,7 @@ export default {
           let data = res.data.coupons;
           data.map((item) => {
             item._showDetails = false;
-            item.showDate = moment.unix(item.due_date).format("YYYY-MM-DD");;
+            item.showDate = moment.unix(item.due_date).format("YYYY-MM-DD");
           })
           this.items = data;
         }

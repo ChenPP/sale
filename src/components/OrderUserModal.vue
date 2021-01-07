@@ -149,14 +149,36 @@ export default {
     },
     // 送出表單
     onSubmit() {
+      let msg;
       const form = this.items.reduce((pre, item) => {
-        // if(item.key !== 'message') ({...pre, [item.key]: item.value});
         if (item.key !== 'message') {
           return {...pre, [item.key]: item.value};
+        } else {
+          msg = item.value;
         }
         return pre;
       }, {});
-      console.log('🚀 ~ file: OrderUserModal.vue ~ line 154 ~ onSubmit ~ form', form);
+      const data = {
+        user: { ...form },
+        message: msg,
+      };
+      const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/order`;
+      this.$http.post(url, { data }).then((res) => {
+        if (res.data.success) {
+          this.$bus.$emit('alert-message', {
+            messages: res.data.message,
+            type: 'success',
+          });
+          this.$bus.$emit('orderSuccese', true);
+          localStorage.removeItem('LproductList');
+        } else {
+          this.$bus.$emit('alert-message', {
+            messages: '出了點問題~請稍後再試',
+          });
+        }
+        this.$bvModal.hide('userModal');
+        this.resetModal();
+      });
     },
     checkFormValidity() {
       console.log('⛑️: checkFormValidity');

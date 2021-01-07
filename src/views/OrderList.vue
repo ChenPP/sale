@@ -1,9 +1,7 @@
 <template>
   <div>
-    <div class="d-flex justify-content-center">
-      <b-spinner type="grow" class="m-5" variant="info" v-show="tableLoading"></b-spinner>
-    </div>
     <b-table
+      :busy.sync="isBusy"
       ref="selectableTable"
       selectable
       :items="items"
@@ -13,7 +11,16 @@
       caption-top
     >
       <template v-slot:table-caption>訂單列表</template>
-      <!-- Example scoped slot for select state illustrative purposes -->
+      <template #table-busy>
+        <div class="text-center text-danger my-2">
+          <b-spinner class="align-middle"></b-spinner>
+          <strong>Loading...</strong>
+        </div>
+      </template>
+      <!-- 日期 -->
+      <template v-slot:cell(create_at)="row">
+        <span>{{$moment.unix(row.item.create_at).format("YYYY-MM-DD")}}</span>
+      </template>
       <template v-slot:cell(selected)="{ rowSelected }">
         <template v-if="rowSelected">
           <span aria-hidden="true">&check;</span>
@@ -29,22 +36,65 @@
 </template>
 
 <script>
+import moment from 'moment';
+
 export default {
   data() {
     return {
-      fields: ['selected', 'isActive', 'age', 'first_name','num', 'total'],
-      items: [
-        { isActive: true, age: 40, first_name: 'Dickerson', last_name: 'Macdonald' },
-        { isActive: false, age: 21, first_name: 'Larsen', last_name: 'Shaw' },
-        { isActive: false, age: 89, first_name: 'Geneva', last_name: 'Wilson' },
-        { isActive: true, age: 38, first_name: 'Jami', last_name: 'Carney' }
+      isBusy: false,
+      // fields: ['selected', 'num', 'create_at', 'is_paid', 'total'],
+      fields: [
+        {
+          key: 'selected',
+          label: '選擇',
+        },
+        {
+          key: 'num',
+          label: '編號',
+          sortable: true,
+        },
+        {
+          key: 'create_at',
+          label: '訂單日期',
+          sortable: true,
+        },
+        {
+          key: 'is_paid',
+          label: '付款',
+        },
+        {
+          key: 'total',
+          label: '總金額'
+        }
       ],
+      items: [],
       selected: []
     }
+  },
+  created() {
+    // this.isBusy = true,
+    this.getOrders();
   },
   methods: {
     onRowSelected(items) {
       this.selected = items
+    },
+    toggleBusy() {
+      this.isBusy = !this.isBusy;
+    },
+    async getOrders(page = 1) {
+      this.isBusy = true;
+      console.log('🚀 ~ file: OrderList.vue ~ line 67 ~ this.isBusy ', this.isBusy )
+      const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/orders/?page=${page}`;
+      await this.$http.get(api).then((response) => {
+        console.log('getOrders --- ', response.data)
+        if (response.data.success) {
+          this.items = response.data.orders;
+        } else {
+          console.log('🚀 ~ file: error');
+        }
+      });
+      this.isBusy = false;
     },
   }
 }

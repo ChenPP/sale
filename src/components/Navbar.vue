@@ -17,7 +17,8 @@
                 v-b-toggle.sidebar-right
                 @click="openCart">
               </b-icon>
-              <b-badge variant="success" pill>{{this.cartData.length}}</b-badge>
+              <!-- <b-badge variant="success" pill>{{this.cartData.length}}</b-badge> -->
+              <b-badge variant="success" pill>{{customerOrders}}</b-badge>
             </b-nav-item>
           </b-navbar-nav>
         </b-navbar-nav>
@@ -133,7 +134,22 @@ export default {
       couponList: [],
       footerLoading: false,
       couponSelected: false, //是否有套用優惠卷
+      orderSuccess: null, // 訂單送出狀態
+      customerOrders: 0, // 購物車裡商品數量
     }
+  },
+  // computed: {
+  //   customerOrders () {
+  //     this.$bus.$on('customerOrders', (status) => {
+  //     this.customerOrders = status;
+  //   });
+  //   },
+  // },
+  watch: {
+    // 訂單送出成功 關閉側欄
+    orderSuccess () {
+      this.getCart();
+    },
   },
   created() {
     const api = `${process.env.VUE_APP_API}/api/user/check`;
@@ -145,6 +161,18 @@ export default {
         this.loginStatus = false;
       }
     })
+  },
+  mounted() {
+    this.$bus.$on('orderSuccese', (status) => {
+      this.orderSuccess = status;
+    });
+    this.$bus.$on('customerOrders', (status) => {
+      this.customerOrders = status;
+    });
+  },
+  destroyed() {
+    console.log("🚀 ~ Navbar destroyed")
+    this.$bus.$off();
   },
   methods: {
     async openCart() {
@@ -182,6 +210,8 @@ export default {
               return [...pre, {...item.product, ...item}];
             }, []);
             this.tableLoading = false;
+            const localData = JSON.parse(localStorage.getItem('LproductList'));
+            this.$bus.$emit('customerOrders',localData ? localData.length : 0);
             resolve('getCart');
           }
         });
@@ -199,6 +229,7 @@ export default {
       // colse();
     },
     cartHide() {
+      console.log('🚀 ~ file: Navbar.vue ~ line 219 ~ cartHide')
       this.resetData();
       this.tableLoading = true;
     },
@@ -206,9 +237,19 @@ export default {
       this.tableLoading = true;
       console.log('⛑️: deleteItem');
       const id = data.item.id;
+      console.log('🚀 ~ file: Navbar.vue ~ line 239 ~ id', id)
       const api = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/cart/${id}`;
       this.$http.delete(api).then((res) => {
         if (res.data.success) {
+          const localData = JSON.parse(localStorage.getItem('LproductList'));
+          console.log('🚀 ~ file: Navbar.vue ~ line 244 ~ localData', localData)
+          if (localData) {
+            const delItem = localData.map(items => items.product_id).indexOf(id);
+            console.log('🚀 ~ file: Navbar.vue ~ line 244 ~ delItem', delItem,)
+            localData.splice(delItem, 1);
+            localStorage.setItem('LproductList', JSON.stringify(localData));
+            console.log('🚀 ~ file: Navbar.vue ~ 刪除結束localData', localData)
+          }
           this.getCart();
         }
       })

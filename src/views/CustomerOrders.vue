@@ -118,22 +118,35 @@ export default {
         this.modalLoading = null;
       });
     },
-    addCart(id, num = 1) {
+    //  新增至localStorage
+    setLocalProductList(newdata = null) {
+      const old = JSON.parse(localStorage.getItem('LproductList'));
+      if (old === null) {
+        localStorage.setItem('LproductList', JSON.stringify([newdata]));
+      } else {
+        const all = [...old, newdata];
+        localStorage.setItem('LproductList', JSON.stringify(all));
+      }
+      this.$bus.$emit('customerOrders', JSON.parse(localStorage.getItem('LproductList')).length);
+    },
+    async addCart(id, num = 1) {
       this.modalLoading = id;
       this.addCartStatus = true;
       const data = {
         product_id: id,
         qty: num,
       }
+      const Lproduct = [data];
       const url = `${process.env.VUE_APP_API}/api/${process.env.VUE_APP_CUSTOMPATH}/cart`;
-      this.$http.post(url, { data }).then((res) => {
+      await this.$http.post(url, { data }).then((res) => {
         this.$bus.$emit('alert-message', {
           messages: '加入購物車成功！',
           dismissSecs: 3,
           type: 'success',
         });
         this.getCart();
-        this.$bvModal.hide('detail-modal')
+        this.setLocalProductList(data);
+        this.$bvModal.hide('detail-modal');
         this.modalLoading = null;
         this.addCartStatus = false;
       });

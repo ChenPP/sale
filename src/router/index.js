@@ -47,7 +47,7 @@ const routes = [
   },
   {
     path: '/dashboard',
-    name: 'CustomerOrders',
+    name: 'Store',
     component: () => import('@/views/Dashboard.vue'),
     children: [
       {

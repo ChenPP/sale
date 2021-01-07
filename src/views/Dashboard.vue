@@ -16,7 +16,7 @@
 <script>
 import Sidebar from '@/components/Sidebar.vue'
 import Navdar from '@/components/Navbar.vue'
-import Alert from '@/components/Alert.vue'
+import Alert from '@/components/Alert.vue' // bus
 
 export default {
   name: 'Dashboard',
